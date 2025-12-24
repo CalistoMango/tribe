@@ -22,7 +22,13 @@ export default function App() {
   } = useMiniApp();
 
   // --- Local State ---
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Check localStorage to see if user has previously signed in
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('tribe_signed_in') === 'true';
+    }
+    return false;
+  });
   const [tasksCompleted, setTasksCompleted] = useState<TasksCompleted>({
     connected: false,
     followed: false,
@@ -50,7 +56,12 @@ export default function App() {
 
   // --- Handlers ---
   const handleLogin = () => {
+    // Only allow login if we have Farcaster context (inside Warpcast)
+    if (!context?.user) {
+      return;
+    }
     setIsLoggedIn(true);
+    localStorage.setItem('tribe_signed_in', 'true');
     setTasksCompleted(prev => ({ ...prev, connected: true }));
   };
 
@@ -75,8 +86,9 @@ export default function App() {
     );
   }
 
-  // Show login screen if not logged in
-  if (!isLoggedIn && !context?.user) {
+  // Show login screen if no Farcaster context (must be inside Warpcast)
+  // OR if user hasn't completed the sign-in flow yet
+  if (!context?.user || !isLoggedIn) {
     return <LoginScreen onLogin={handleLogin} />;
   }
 
