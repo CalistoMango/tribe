@@ -1,53 +1,39 @@
-import React from "react";
-import { Tab } from "~/components/App";
+"use client";
+
+import { Users, MessageSquare, DollarSign, Gift } from "lucide-react";
+import { Tab } from "~/lib/types";
 
 interface FooterProps {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
-  showWallet?: boolean;
 }
 
-export const Footer: React.FC<FooterProps> = ({ activeTab, setActiveTab, showWallet = false }) => (
-  <div className="fixed bottom-0 left-0 right-0 mx-4 mb-4 bg-gray-100 dark:bg-gray-800 border-[3px] border-double border-primary px-2 py-2 rounded-lg z-50">
-    <div className="flex justify-around items-center h-14">
-      <button
-        onClick={() => setActiveTab(Tab.Home)}
-        className={`flex flex-col items-center justify-center w-full h-full ${
-          activeTab === Tab.Home ? 'text-primary dark:text-primary-light' : 'text-gray-500 dark:text-gray-400'
-        }`}
-      >
-        <span className="text-xl">🏠</span>
-        <span className="text-xs mt-1">Home</span>
-      </button>
-      <button
-        onClick={() => setActiveTab(Tab.Actions)}
-        className={`flex flex-col items-center justify-center w-full h-full ${
-          activeTab === Tab.Actions ? 'text-primary dark:text-primary-light' : 'text-gray-500 dark:text-gray-400'
-        }`}
-      >
-        <span className="text-xl">⚡</span>
-        <span className="text-xs mt-1">Actions</span>
-      </button>
-      <button
-        onClick={() => setActiveTab(Tab.Context)}
-        className={`flex flex-col items-center justify-center w-full h-full ${
-          activeTab === Tab.Context ? 'text-primary dark:text-primary-light' : 'text-gray-500 dark:text-gray-400'
-        }`}
-      >
-        <span className="text-xl">📋</span>
-        <span className="text-xs mt-1">Context</span>
-      </button>
-      {showWallet && (
-        <button
-          onClick={() => setActiveTab(Tab.Wallet)}
-          className={`flex flex-col items-center justify-center w-full h-full ${
-            activeTab === Tab.Wallet ? 'text-primary dark:text-primary-light' : 'text-gray-500 dark:text-gray-400'
-          }`}
-        >
-          <span className="text-xl">👛</span>
-          <span className="text-xs mt-1">Wallet</span>
-        </button>
-      )}
+const tabs = [
+  { id: Tab.Discover, label: 'Discover', icon: Users },
+  { id: Tab.Bounties, label: 'Bounties', icon: MessageSquare },
+  { id: Tab.Earnings, label: 'Earnings', icon: DollarSign },
+  { id: Tab.Referral, label: 'Referral', icon: Gift },
+];
+
+export const Footer: React.FC<FooterProps> = ({ activeTab, setActiveTab }) => (
+  <nav className="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800">
+    <div className="max-w-lg mx-auto flex">
+      {tabs.map(tab => {
+        const Icon = tab.icon;
+        const isActive = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 flex flex-col items-center py-3 transition-colors ${
+              isActive ? 'text-violet-400' : 'text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            <Icon className="w-5 h-5 mb-1" />
+            <span className="text-xs font-medium">{tab.label}</span>
+          </button>
+        );
+      })}
     </div>
-  </div>
+  </nav>
 );

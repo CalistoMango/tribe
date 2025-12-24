@@ -1,77 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { APP_NAME } from "~/lib/constants";
-import sdk from "@farcaster/miniapp-sdk";
+import { Users } from "lucide-react";
 import { useMiniApp } from "@neynar/react";
 
-type HeaderProps = {
-  neynarUser?: {
-    fid: number;
-    score: number;
-  } | null;
-};
-
-export function Header({ neynarUser }: HeaderProps) {
+export function Header() {
   const { context } = useMiniApp();
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   return (
-    <div className="relative">
-      <div 
-        className="mt-4 mb-4 mx-4 px-2 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-between border-[3px] border-double border-primary"
-      >
-        <div className="text-lg font-light">
-          Welcome to {APP_NAME}!
+    <header className="border-b border-zinc-800 p-4">
+      <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+            <Users className="w-5 h-5 text-white" />
+          </div>
+          <span className="font-bold text-xl">Tribe</span>
         </div>
         {context?.user && (
-          <div 
-            className="cursor-pointer"
-            onClick={() => {
-              setIsUserDropdownOpen(!isUserDropdownOpen);
-            }}
-          >
-            {context.user.pfpUrl && (
-              <img 
-                src={context.user.pfpUrl} 
-                alt="Profile" 
-                className="w-10 h-10 rounded-full border-2 border-primary"
-              />
-            )}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-zinc-700 overflow-hidden">
+              {context.user.pfpUrl ? (
+                <img src={context.user.pfpUrl} alt="You" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xs text-zinc-400">
+                  {context.user.username?.[0]?.toUpperCase()}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
-      {context?.user && (
-        <>      
-          {isUserDropdownOpen && (
-            <div className="absolute top-full right-0 z-50 w-fit mt-1 mx-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-              <div className="p-3 space-y-2">
-                <div className="text-right">
-                  <h3 
-                    className="font-bold text-sm hover:underline cursor-pointer inline-block"
-                    onClick={() => sdk.actions.viewProfile({ fid: context.user.fid })}
-                  >
-                    {context.user.displayName || context.user.username}
-                  </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    @{context.user.username}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    FID: {context.user.fid}
-                  </p>
-                  {neynarUser && (
-                    <>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
-                        Neynar Score: {neynarUser.score}
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-    </div>
+    </header>
   );
 }

@@ -1,57 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMiniApp } from "@neynar/react";
 import { Header } from "~/components/ui/Header";
 import { Footer } from "~/components/ui/Footer";
-import { HomeTab, ActionsTab, ContextTab, WalletTab } from "~/components/ui/tabs";
-import { USE_WALLET } from "~/lib/constants";
-import { useNeynarUser } from "../hooks/useNeynarUser";
+import { DiscoverTab, BountiesTab, EarningsTab, ReferralTab } from "~/components/ui/tabs";
+import { TaskBanner } from "~/components/ui/TaskBanner";
+import { ProfileSetupModal } from "~/components/ui/ProfileSetupModal";
+import { LoginScreen } from "~/components/ui/LoginScreen";
+import { type TasksCompleted } from "~/lib/mockData";
+import { Tab } from "~/lib/types";
 
-// --- Types ---
-export enum Tab {
-  Home = "home",
-  Actions = "actions",
-  Context = "context",
-  Wallet = "wallet",
-}
-
-export interface AppProps {
-  title?: string;
-}
-
-/**
- * App component serves as the main container for the mini app interface.
- * 
- * This component orchestrates the overall mini app experience by:
- * - Managing tab navigation and state
- * - Handling Farcaster mini app initialization
- * - Coordinating wallet and context state
- * - Providing error handling and loading states
- * - Rendering the appropriate tab content based on user selection
- * 
- * The component integrates with the Neynar SDK for Farcaster functionality
- * and Wagmi for wallet management. It provides a complete mini app
- * experience with multiple tabs for different functionality areas.
- * 
- * Features:
- * - Tab-based navigation (Home, Actions, Context, Wallet)
- * - Farcaster mini app integration
- * - Wallet connection management
- * - Error handling and display
- * - Loading states for async operations
- * 
- * @param props - Component props
- * @param props.title - Optional title for the mini app (defaults to "Neynar Starter Kit")
- * 
- * @example
- * ```tsx
- * <App title="My Mini App" />
- * ```
- */
-export default function App(
-  { title }: AppProps = { title: "Neynar Starter Kit" }
-) {
+export default function App() {
   // --- Hooks ---
   const {
     isSDKLoaded,
@@ -61,38 +21,79 @@ export default function App(
     currentTab,
   } = useMiniApp();
 
-  // --- Neynar user hook ---
-  const { user: neynarUser } = useNeynarUser(context || undefined);
+  // --- Local State ---
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [tasksCompleted, setTasksCompleted] = useState<TasksCompleted>({
+    connected: false,
+    followed: false,
+    recasted: false,
+    profile: false,
+  });
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+
+  const allTasksDone = Object.values(tasksCompleted).every(v => v);
 
   // --- Effects ---
-  /**
-   * Sets the initial tab to "home" when the SDK is loaded.
-   * 
-   * This effect ensures that users start on the home tab when they first
-   * load the mini app. It only runs when the SDK is fully loaded to
-   * prevent errors during initialization.
-   */
   useEffect(() => {
     if (isSDKLoaded) {
-      setInitialTab(Tab.Home);
+      setInitialTab(Tab.Discover);
     }
   }, [isSDKLoaded, setInitialTab]);
+
+  // Auto-login when context has user
+  useEffect(() => {
+    if (context?.user) {
+      setIsLoggedIn(true);
+      setTasksCompleted(prev => ({ ...prev, connected: true }));
+    }
+  }, [context?.user]);
+
+  // --- Handlers ---
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    setTasksCompleted(prev => ({ ...prev, connected: true }));
+  };
+
+  const handleCompleteTask = (task: keyof TasksCompleted) => {
+    setTasksCompleted(prev => ({ ...prev, [task]: true }));
+  };
+
+  const handleSaveProfile = () => {
+    setTasksCompleted(prev => ({ ...prev, profile: true }));
+    setShowProfileSetup(false);
+  };
 
   // --- Early Returns ---
   if (!isSDKLoaded) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="spinner h-8 w-8 mx-auto mb-4"></div>
-          <p>Loading SDK...</p>
+      <div className="flex items-center justify-center h-screen bg-zinc-950">
+        <div className="text-center text-white">
+          <div className="spinner h-8 w-8 mx-auto mb-4 border-violet-500 border-t-transparent"></div>
+          <p>Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  // Show login screen if not logged in
+  if (!isLoggedIn && !context?.user) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
+  // Show profile setup modal
+  if (showProfileSetup) {
+    return (
+      <ProfileSetupModal
+        onClose={() => setShowProfileSetup(false)}
+        onSave={handleSaveProfile}
+      />
     );
   }
 
   // --- Render ---
   return (
     <div
+      className="min-h-screen bg-zinc-950 text-white flex flex-col"
       style={{
         paddingTop: context?.client.safeAreaInsets?.top ?? 0,
         paddingBottom: context?.client.safeAreaInsets?.bottom ?? 0,
@@ -100,24 +101,26 @@ export default function App(
         paddingRight: context?.client.safeAreaInsets?.right ?? 0,
       }}
     >
-      {/* Header should be full width */}
-      <Header neynarUser={neynarUser} />
+      <Header />
 
-      {/* Main content and footer should be centered */}
-      <div className="container py-2 pb-20">
-        {/* Main title */}
-        <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
+      {/* Task Banner */}
+      <TaskBanner
+        tasksCompleted={tasksCompleted}
+        onCompleteTask={handleCompleteTask}
+        onOpenProfileSetup={() => setShowProfileSetup(true)}
+      />
 
-        {/* Tab content rendering */}
-        {currentTab === Tab.Home && <HomeTab />}
-        {currentTab === Tab.Actions && <ActionsTab />}
-        {currentTab === Tab.Context && <ContextTab />}
-        {currentTab === Tab.Wallet && <WalletTab />}
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto pb-20">
+        <div className="max-w-lg mx-auto p-4">
+          {currentTab === Tab.Discover && <DiscoverTab />}
+          {currentTab === Tab.Bounties && <BountiesTab allTasksDone={allTasksDone} />}
+          {currentTab === Tab.Earnings && <EarningsTab />}
+          {currentTab === Tab.Referral && <ReferralTab />}
+        </div>
+      </main>
 
-        {/* Footer with navigation */}
-        <Footer activeTab={currentTab as Tab} setActiveTab={setActiveTab} showWallet={USE_WALLET} />
-      </div>
+      <Footer activeTab={currentTab as Tab} setActiveTab={setActiveTab} />
     </div>
   );
 }
-
