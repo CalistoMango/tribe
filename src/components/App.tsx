@@ -11,6 +11,8 @@ import { LoginScreen } from "~/components/ui/LoginScreen";
 import { type TasksCompleted } from "~/lib/mockData";
 import { Tab } from "~/lib/types";
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export default function App() {
   // --- Hooks ---
   const {
@@ -87,7 +89,8 @@ export default function App() {
 
   // Show login screen if no Farcaster context (must be inside Warpcast)
   // OR if user hasn't completed the sign-in flow yet
-  if (!context?.user || !isLoggedIn) {
+  // Skip in dev mode for easier testing
+  if (!isDev && (!context?.user || !isLoggedIn)) {
     return <LoginScreen onLogin={handleLogin} />;
   }
 
