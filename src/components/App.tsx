@@ -202,7 +202,7 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 overflow-auto pb-20">
         <div className="max-w-lg mx-auto p-4">
-          {currentTab === Tab.Discover && <DiscoverTab />}
+          {currentTab === Tab.Discover && <DiscoverTab userFid={context?.user?.fid ?? dbUser?.fid ?? null} />}
           {currentTab === Tab.Bounties && <BountiesTab allTasksDone={allTasksDone} />}
           {currentTab === Tab.Earnings && <EarningsTab />}
           {currentTab === Tab.Referral && <ReferralTab userFid={context?.user?.fid ?? dbUser?.fid ?? null} />}

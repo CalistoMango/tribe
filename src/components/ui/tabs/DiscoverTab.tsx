@@ -3,19 +3,40 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { UserCard } from "~/components/ui/UserCard";
+import { ProfileSetupModal } from "~/components/ui/ProfileSetupModal";
 import { useCategories } from "~/hooks/useCategories";
 import { useDiscoverUsers, useCategoryCounts } from "~/hooks/useDiscoverUsers";
 
-export function DiscoverTab() {
+interface DiscoverTabProps {
+  userFid: number | null;
+}
+
+export function DiscoverTab({ userFid }: DiscoverTabProps) {
   const { categories, isLoading: categoriesLoading } = useCategories();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const { users, isLoading: usersLoading } = useDiscoverUsers(selectedCategory, searchQuery);
   const { counts } = useCategoryCounts(categories.map(c => c.id));
 
   return (
     <div>
+      {/* Intro Card */}
+      <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 mb-4">
+        <p className="text-zinc-300 text-sm">
+          Discover interesting people to follow and engage with. Browse by category to find creators, builders, and experts in topics you care about.
+        </p>
+        {userFid && (
+          <button
+            onClick={() => setShowProfileModal(true)}
+            className="text-violet-400 hover:text-violet-300 text-sm mt-2 font-medium"
+          >
+            Want to be featured here? Set up your profile →
+          </button>
+        )}
+      </div>
+
       {/* Search */}
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
@@ -38,19 +59,19 @@ export function DiscoverTab() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {categories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
                   selectedCategory === cat.id
                     ? 'bg-violet-600 text-white'
                     : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
                 }`}
               >
                 {cat.emoji} {cat.display_name}
-                <span className="ml-1 text-zinc-500 text-xs">{counts[cat.id] ?? 0}</span>
+                <span className="ml-1 text-zinc-500 text-[10px]">{counts[cat.id] ?? 0}</span>
               </button>
             ))}
           </div>
@@ -91,6 +112,19 @@ export function DiscoverTab() {
           )}
         </div>
       </div>
+
+      {/* Profile Setup Modal */}
+      {showProfileModal && userFid && (
+        <div className="fixed inset-0 z-50 bg-zinc-950">
+          <ProfileSetupModal
+            fid={userFid}
+            onClose={() => setShowProfileModal(false)}
+            onSave={() => {
+              setShowProfileModal(false);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

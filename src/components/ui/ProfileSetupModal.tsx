@@ -36,6 +36,7 @@ export function ProfileSetupModal({ fid, onClose, onSave }: ProfileSetupModalPro
           fid,
           bio: userBio,
           categories: userCategories,
+          discoverable: true,
         }),
       });
 
