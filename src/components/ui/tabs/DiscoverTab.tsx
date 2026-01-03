@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Search } from "lucide-react";
+import { useState, useMemo } from "react";
 import { UserCard } from "~/components/ui/UserCard";
 import { ProfileSetupModal } from "~/components/ui/ProfileSetupModal";
 import { useCategories } from "~/hooks/useCategories";
@@ -14,15 +13,17 @@ interface DiscoverTabProps {
 export function DiscoverTab({ userFid }: DiscoverTabProps) {
   const { categories, isLoading: categoriesLoading } = useCategories();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery] = useState("");
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  const { users, isLoading: usersLoading, refetch: refetchUsers } = useDiscoverUsers(selectedCategory, searchQuery);
-  const { counts, refetch: refetchCounts } = useCategoryCounts(categories.map(c => c.id));
+  // Memoize category IDs to prevent unnecessary refetches
+  const categoryIds = useMemo(() => categories.map(c => c.id), [categories]);
 
-  // Check if current user is already discoverable (appears in featured users)
-  const { users: allUsers } = useDiscoverUsers(null, "");
-  const isUserDiscoverable = userFid ? allUsers.some(u => u.fid === userFid) : false;
+  const { users, isLoading: usersLoading, refetch: refetchUsers } = useDiscoverUsers(selectedCategory, searchQuery);
+  const { counts, refetch: refetchCounts } = useCategoryCounts(categoryIds);
+
+  // Check if current user is already discoverable (from existing users list, no extra API call)
+  const isUserDiscoverable = userFid ? users.some(u => u.fid === userFid) : false;
 
   return (
     <div>

@@ -31,7 +31,6 @@ import { creditDeposit } from '~/lib/balance'
 
 describe('GET /api/webhooks/alchemy', () => {
   it('returns status and config', async () => {
-    const request = new NextRequest('http://localhost:3000/api/webhooks/alchemy')
     const response = await GET()
 
     expect(response.status).toBe(200)

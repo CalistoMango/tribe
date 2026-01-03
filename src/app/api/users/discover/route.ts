@@ -55,15 +55,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// GET /api/users/discover/counts
+// POST /api/users/discover
 // Returns count of discoverable users per category
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    // Handle empty body
+    const text = await request.text()
+    if (!text) {
+      return NextResponse.json({ counts: {} })
+    }
+
+    const body = JSON.parse(text)
     const { categories } = body
 
-    if (!categories || !Array.isArray(categories)) {
-      return NextResponse.json({ error: 'Missing categories array' }, { status: 400 })
+    if (!categories || !Array.isArray(categories) || categories.length === 0) {
+      return NextResponse.json({ counts: {} })
     }
 
     const counts: Record<string, number> = {}

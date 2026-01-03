@@ -47,7 +47,7 @@ describe('GET /api/balance', () => {
       {
         id: 'tx-1',
         fid: 123,
-        type: 'deposit',
+        type: 'deposit' as const,
         amount: 5000000,
         referenceId: '0xabc123',
         description: 'USDC deposit',

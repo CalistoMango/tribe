@@ -67,6 +67,9 @@ export function useCategoryCounts(categoryIds: string[]) {
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [isLoading, setIsLoading] = useState(true)
 
+  // Stringify to create stable dependency
+  const categoryIdsKey = categoryIds.join(',')
+
   const fetchCounts = useCallback(async () => {
     if (categoryIds.length === 0) {
       setIsLoading(false)
@@ -90,7 +93,8 @@ export function useCategoryCounts(categoryIds: string[]) {
     } finally {
       setIsLoading(false)
     }
-  }, [categoryIds])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryIdsKey])
 
   useEffect(() => {
     fetchCounts()
