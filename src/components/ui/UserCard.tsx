@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles, User } from "lucide-react";
+import { useMiniApp } from "@neynar/react";
 import { useCategories } from "~/hooks/useCategories";
 import type { DiscoverUser } from "~/hooks/useDiscoverUsers";
 
@@ -10,6 +11,11 @@ interface UserCardProps {
 
 export function UserCard({ user }: UserCardProps) {
   const { categories } = useCategories();
+  const { actions } = useMiniApp();
+
+  const handleViewProfile = () => {
+    actions.viewProfile({ fid: user.fid });
+  };
 
   const getCategoryDisplay = (catId: string) => {
     const cat = categories.find(c => c.id === catId);
@@ -49,9 +55,17 @@ export function UserCard({ user }: UserCardProps) {
           </div>
         )}
       </div>
-      <button className="text-violet-400 hover:text-violet-300 flex-shrink-0">
-        <User className="w-5 h-5" />
-      </button>
+      <div className="flex flex-col items-end justify-between flex-shrink-0">
+        {user.score !== null && (
+          <span className="text-xs text-zinc-500 font-medium">{user.score.toFixed(2)}</span>
+        )}
+        <button
+          onClick={handleViewProfile}
+          className="text-violet-400 hover:text-violet-300"
+        >
+          <User className="w-5 h-5" />
+        </button>
+      </div>
     </div>
   );
 }

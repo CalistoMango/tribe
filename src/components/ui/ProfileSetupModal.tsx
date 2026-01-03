@@ -10,6 +10,8 @@ interface ProfileSetupModalProps {
   onSave: (bio: string, selectedCategories: string[]) => void;
 }
 
+const BIO_MAX_LENGTH = 160;
+
 export function ProfileSetupModal({ fid, onClose, onSave }: ProfileSetupModalProps) {
   const { categories, isLoading: categoriesLoading } = useCategories();
   const [userBio, setUserBio] = useState("");
@@ -64,12 +66,18 @@ export function ProfileSetupModal({ fid, onClose, onSave }: ProfileSetupModalPro
 
         {/* Bio */}
         <div className="mb-6">
-          <label className="block text-sm text-zinc-400 mb-2">What do you post about?</label>
+          <div className="flex justify-between items-center mb-2">
+            <label className="text-sm text-zinc-400">What do you post about?</label>
+            <span className={`text-xs ${userBio.length > BIO_MAX_LENGTH ? 'text-red-400' : 'text-zinc-500'}`}>
+              {userBio.length}/{BIO_MAX_LENGTH}
+            </span>
+          </div>
           <textarea
             value={userBio}
-            onChange={(e) => setUserBio(e.target.value)}
+            onChange={(e) => setUserBio(e.target.value.slice(0, BIO_MAX_LENGTH))}
             placeholder="I build mini apps on Base and talk about crypto..."
             className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 resize-none h-24"
+            maxLength={BIO_MAX_LENGTH}
           />
         </div>
 

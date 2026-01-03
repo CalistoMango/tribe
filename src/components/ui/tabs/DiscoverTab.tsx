@@ -17,8 +17,12 @@ export function DiscoverTab({ userFid }: DiscoverTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  const { users, isLoading: usersLoading } = useDiscoverUsers(selectedCategory, searchQuery);
-  const { counts } = useCategoryCounts(categories.map(c => c.id));
+  const { users, isLoading: usersLoading, refetch: refetchUsers } = useDiscoverUsers(selectedCategory, searchQuery);
+  const { counts, refetch: refetchCounts } = useCategoryCounts(categories.map(c => c.id));
+
+  // Check if current user is already discoverable (appears in featured users)
+  const { users: allUsers } = useDiscoverUsers(null, "");
+  const isUserDiscoverable = userFid ? allUsers.some(u => u.fid === userFid) : false;
 
   return (
     <div>
@@ -27,7 +31,7 @@ export function DiscoverTab({ userFid }: DiscoverTabProps) {
         <p className="text-zinc-300 text-sm">
           Discover interesting people to follow and engage with. Browse by category to find creators, builders, and experts in topics you care about.
         </p>
-        {userFid && (
+        {userFid && !isUserDiscoverable && (
           <button
             onClick={() => setShowProfileModal(true)}
             className="text-violet-400 hover:text-violet-300 text-sm mt-2 font-medium"
@@ -37,7 +41,7 @@ export function DiscoverTab({ userFid }: DiscoverTabProps) {
         )}
       </div>
 
-      {/* Search */}
+      {/* Search - temporarily hidden
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
         <input
@@ -48,6 +52,7 @@ export function DiscoverTab({ userFid }: DiscoverTabProps) {
           className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500"
         />
       </div>
+      */}
 
       {/* Categories */}
       <div className="mb-6">
@@ -121,6 +126,8 @@ export function DiscoverTab({ userFid }: DiscoverTabProps) {
             onClose={() => setShowProfileModal(false)}
             onSave={() => {
               setShowProfileModal(false);
+              refetchUsers();
+              refetchCounts();
             }}
           />
         </div>

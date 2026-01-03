@@ -67,33 +67,34 @@ export function useCategoryCounts(categoryIds: string[]) {
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
+  const fetchCounts = useCallback(async () => {
     if (categoryIds.length === 0) {
       setIsLoading(false)
       return
     }
 
-    const fetchCounts = async () => {
-      try {
-        const response = await fetch('/api/users/discover', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ categories: categoryIds }),
-        })
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/users/discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categories: categoryIds }),
+      })
 
-        if (response.ok) {
-          const result = await response.json()
-          setCounts(result.counts || {})
-        }
-      } catch (err) {
-        console.error('Failed to fetch category counts:', err)
-      } finally {
-        setIsLoading(false)
+      if (response.ok) {
+        const result = await response.json()
+        setCounts(result.counts || {})
       }
+    } catch (err) {
+      console.error('Failed to fetch category counts:', err)
+    } finally {
+      setIsLoading(false)
     }
-
-    fetchCounts()
   }, [categoryIds])
 
-  return { counts, isLoading }
+  useEffect(() => {
+    fetchCounts()
+  }, [fetchCounts])
+
+  return { counts, isLoading, refetch: fetchCounts }
 }

@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '~/lib/supabase'
 import { nanoid } from 'nanoid'
+import { getNeynarClient } from '~/lib/neynar'
+
+// Fetch Neynar user score for a given fid
+async function fetchNeynarScore(fid: number): Promise<number | null> {
+  try {
+    const client = getNeynarClient()
+    const response = await client.fetchBulkUsers({ fids: [fid] })
+    const user = response.users[0]
+    return user?.experimental?.neynar_user_score ?? null
+  } catch (error) {
+    console.error('Error fetching Neynar score:', error)
+    return null
+  }
+}
 
 // POST /api/auth/bootstrap
 // Called after Farcaster login to upsert user in database
@@ -13,6 +27,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing fid' }, { status: 400 })
     }
 
+    // Fetch Neynar score on every login
+    const neynarScore = await fetchNeynarScore(fid)
+
     // Check if user exists
     const { data: existingUser } = await supabase
       .from('users')
@@ -21,13 +38,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (existingUser) {
-      // Update existing user (sync latest Farcaster data)
+      // Update existing user (sync latest Farcaster data + refresh score)
       const { data: updatedUser, error } = await supabase
         .from('users')
         .update({
           username: username || existingUser.username,
           display_name: displayName || existingUser.display_name,
           pfp_url: pfpUrl || existingUser.pfp_url,
+          score: neynarScore,
           updated_at: new Date().toISOString(),
         })
         .eq('fid', fid)
@@ -68,6 +86,7 @@ export async function POST(request: NextRequest) {
         pfp_url: pfpUrl,
         referral_code: newUserReferralCode,
         referred_by_fid: referredByFid,
+        score: neynarScore,
       })
       .select()
       .single()
